@@ -1,0 +1,73 @@
+<svg width="400" height="90" viewBox="0 0 400 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradients -->
+  <defs>
+    <!-- Loop A: Top-Left to Bottom-Right -->
+    <linearGradient id="loop_a_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f3ff" />
+      <stop offset="35%" stop-color="#008cb5" />
+      <stop offset="70%" stop-color="#691b7b" />
+      <stop offset="100%" stop-color="#960b33" />
+    </linearGradient>
+
+    <!-- Loop B: Top-Right to Bottom-Left -->
+    <linearGradient id="loop_b_grad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00799c" />
+      <stop offset="40%" stop-color="#4e1b7b" />
+      <stop offset="100%" stop-color="#960b33" />
+    </linearGradient>
+
+    <!-- Text Gradient -->
+    <linearGradient id="text_grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+
+    <!-- Masks for Hollow Cutouts -->
+    <mask id="mask_a">
+      <rect x="0" y="0" width="90" height="90" fill="white" />
+      <g transform="translate(45, 45)">
+        <rect x="-6" y="-26" width="12" height="52" rx="6" fill="black" transform="rotate(45)" />
+      </g>
+    </mask>
+
+    <mask id="mask_b">
+      <rect x="0" y="0" width="90" height="90" fill="white" />
+      <g transform="translate(45, 45)">
+        <rect x="-6" y="-26" width="12" height="52" rx="6" fill="black" transform="rotate(-45)" />
+      </g>
+    </mask>
+
+    <!-- Clip Path for 3D Overlap (Bottom Half of the icon) -->
+    <clipPath id="clip_bottom">
+      <rect x="0" y="45" width="90" height="45" />
+    </clipPath>
+  </defs>
+
+  <!-- Centered Icon Group -->
+  <g transform="translate(10, 0)">
+    <!-- 1. Draw Ring A (Full) -->
+    <g mask="url(#mask_a)">
+      <rect x="-14" y="-34" width="28" height="68" rx="14" transform="translate(45, 45) rotate(45)" fill="url(#loop_a_grad)" />
+    </g>
+
+    <!-- 2. Draw Ring B (Full) -->
+    <g mask="url(#mask_b)">
+      <rect x="-14" y="-34" width="28" height="68" rx="14" transform="translate(45, 45) rotate(-45)" fill="url(#loop_b_grad)" />
+    </g>
+
+    <!-- 3. Redraw Ring A (Clipped to bottom half to create the overlap) -->
+    <g clip-path="url(#clip_bottom)">
+      <g mask="url(#mask_a)">
+        <rect x="-14" y="-34" width="28" height="68" rx="14" transform="translate(45, 45) rotate(45)" fill="url(#loop_a_grad)" />
+      </g>
+    </g>
+  </g>
+
+  <!-- Text brand XEUS -->
+  <text x="110" y="62" 
+        font-family="'Outfit', 'Inter', sans-serif" 
+        font-size="52" 
+        font-weight="900" 
+        fill="url(#text_grad)" 
+        letter-spacing="5">XEUS</text>
+</svg>

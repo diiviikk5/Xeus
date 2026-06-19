@@ -1,0 +1,8 @@
+<svg width="120" height="30" viewBox="0 0 120 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor">
+    <path d="M15 6H1.5L5 2.5H18.5L15 6Z" />
+    <path d="M18.5 13.5H5L1.5 17H15L18.5 13.5Z" />
+    <path d="M15 21H1.5L5 24.5H18.5L15 21Z" />
+    <text x="26" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="11" letter-spacing="1.2">SOLANA</text>
+  </g>
+</svg>

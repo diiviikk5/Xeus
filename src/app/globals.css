@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@100..900&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: #000000;
+  color: #ffffff;
+  font-family: var(--font-geist-sans), 'Outfit', 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Animations */
+
+/* Text gradient sweep animation */
+.gradient-text-animate {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ff3700 25%,
+    #ffae00 50%,
+    #ff3700 75%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shine 8s linear infinite;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+/* Logo sweep animation */
+@keyframes gradient-sweep {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* Send button angle property registration for modern browsers */
+@property --send-btn-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Send button rotate animation */
+@keyframes send-btn-bg-rotate {
+  0% {
+    --send-btn-angle: 0deg;
+  }
+  100% {
+    --send-btn-angle: 360deg;
+  }
+}
