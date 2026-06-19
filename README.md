@@ -1,6 +1,7 @@
 ## XEUS
 
 Xeus is a plauground for solana agents but different , faster , easier maiking the ecosystem of Ai x Solana More usefull and effective using the Agent Kit and Solana.new Mcp
+
 <img width="1919" height="946" alt="image" src="https://github.com/user-attachments/assets/db8b5a84-58f2-464e-8768-48d5404c7c67" />
 
 
@@ -19,7 +20,7 @@ Xeus is a plauground for solana agents but different , faster , easier maiking t
 
 
 
-##Tech shit
+## Tech shit
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
