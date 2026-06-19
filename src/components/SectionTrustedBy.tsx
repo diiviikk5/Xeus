@@ -54,7 +54,7 @@ const SectionTrustedBy = () => {
       w += r.width;
     }
     // include one gap per item (flex gap is between items)
-    const gap = isMobile ? 56 : 88;
+    const gap = isMobile ? 32 : 48;
     w += gap * perSet;
     setWidthRef.current = w;
   };
@@ -70,7 +70,7 @@ const SectionTrustedBy = () => {
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
-    const speed = isMobile ? 55 : 80; // px/s
+    const speed = isMobile ? 40 : 55; // px/s, slightly slower for readability
 
     const tick = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
@@ -104,17 +104,17 @@ const SectionTrustedBy = () => {
         const elCenter = r.left + r.width / 2 - cLeft;
         // normalized position across viewport: -1 (left) .. 1 (right)
         const t = (elCenter - cx) / (cx || 1);
-        const ct = Math.max(-1.3, Math.min(1.3, t));
-        // smooth bell — modern orbit-like depth curve
-        const bulge = Math.cos(Math.max(-1, Math.min(1, ct)) * (Math.PI / 2));
+        const ct = Math.max(-1.5, Math.min(1.5, t));
+        // smooth bell — modern orbit-like depth curve, gentler decay
+        const bulge = Math.cos(Math.max(-1, Math.min(1, ct * 0.7)) * (Math.PI / 2));
         // subtle orbit: gentle rotateY + tiny y arc
-        const rotY = -ct * 26; // deg
-        const yArc = (1 - bulge) * -8; // lift edges slightly
-        const tz = bulge * 140;
-        const scale = 0.72 + bulge * 0.5; // 0.72 .. 1.22
-        const edge = Math.max(0, 1 - Math.pow(Math.abs(ct), 1.5));
-        const opacity = edge * (0.5 + bulge * 0.5);
-        const blur = (1 - bulge) * 1.4;
+        const rotY = -ct * 12; // deg
+        const yArc = (1 - bulge) * -3; // lift edges slightly
+        const tz = bulge * 60;
+        const scale = 0.88 + bulge * 0.18; // 0.88 .. 1.06
+        const edge = Math.max(0.2, 1 - Math.pow(Math.abs(ct) * 0.6, 2));
+        const opacity = edge * (0.6 + bulge * 0.4);
+        const blur = (1 - bulge) * 0.5;
 
         inner.style.transform =
           `translateY(${yArc}px) translateZ(${tz}px) rotateY(${rotY}deg) scale(${scale})`;
@@ -131,60 +131,22 @@ const SectionTrustedBy = () => {
   return (
     <section
       style={{
-        background: "#000000",
+        background: "transparent",
         color: "#fff",
-        padding: "60px 24px",
-        width: "100%",
-        borderTop: "1px solid rgba(255, 55, 0, 0.12)",
+        padding: "16px 0 0 0",
+        width: "100vw",
+        maxWidth: "100%",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
-          maxWidth: 1280,
-          margin: "0 auto",
+          width: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 40,
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}
-        >
-          <h2
-            style={{
-              fontFamily: '"Orbitron", sans-serif',
-              fontWeight: 900,
-              fontSize: "0.85rem",
-              lineHeight: 1.4,
-              color: "#ff3700",
-              letterSpacing: "0.15em",
-              textAlign: "center",
-              textTransform: "uppercase",
-              margin: 0,
-            }}
-          >
-            Integrations
-          </h2>
-          <p
-            style={{
-              fontFamily: '"Outfit", sans-serif',
-              fontWeight: 400,
-              fontSize: "clamp(1.1rem, 2vw, 1.4rem)",
-              color: "rgba(255,255,255,0.65)",
-              textAlign: "center",
-              maxWidth: 600,
-              margin: "6px 0 0 0",
-            }}
-          >
-            Powering on-chain AI agents with the best Solana protocols
-          </p>
-        </motion.div>
-
         <motion.div
           ref={containerRef}
           initial={{ opacity: 0, filter: "blur(8px)" }}
@@ -193,7 +155,7 @@ const SectionTrustedBy = () => {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           style={{
             width: "100%",
-            height: isMobile ? 110 : 140,
+            height: isMobile ? 60 : 70,
             position: "relative",
             overflow: "hidden",
             perspective: "1200px",
@@ -211,7 +173,7 @@ const SectionTrustedBy = () => {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? 56 : 88,
+              gap: isMobile ? 32 : 48,
               width: "max-content",
               height: "100%",
               transformStyle: "preserve-3d",
@@ -224,7 +186,7 @@ const SectionTrustedBy = () => {
                 ref={(el) => { if (el) slotRefs.current[idx] = el; }}
                 style={{
                   flex: "0 0 auto",
-                  height: isMobile ? 28 : 38,
+                  height: isMobile ? 24 : 32,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -245,7 +207,7 @@ const SectionTrustedBy = () => {
                     alt=""
                     draggable={false}
                     style={{
-                      height: isMobile ? 28 : 38,
+                      height: isMobile ? 24 : 32,
                       width: "auto",
                       display: "block",
                       userSelect: "none",

@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 type NavItem = { label: string; description?: string; external?: boolean };
 type NavColumn = { heading: string; items: NavItem[]; groups?: NavItem[][] };
@@ -81,7 +82,8 @@ const navLinks: NavLink[] = [
 const ARROW_SRC = "/vendor/arrow-right.svg";
 
 const ArrowButton = ({ children }: { children: React.ReactNode }) => (
-  <button
+  <Link
+    href="/playground"
     className="group relative inline-flex items-center justify-center overflow-hidden"
     style={{
       height: 38,
@@ -97,6 +99,7 @@ const ArrowButton = ({ children }: { children: React.ReactNode }) => (
       cursor: "pointer",
       boxShadow: "0 4px 14px 0 rgba(255,55,0,0.35)",
       transition: "all 0.3s ease",
+      textDecoration: "none",
     }}
   >
     <style>{`
@@ -127,7 +130,7 @@ const ArrowButton = ({ children }: { children: React.ReactNode }) => (
         style={{ transition: "transform 500ms cubic-bezier(0.65,0,0.35,1)" }}
       />
     </span>
-  </button>
+  </Link>
 );
 
 const HeroNavbar = () => {

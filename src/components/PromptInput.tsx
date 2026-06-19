@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const A = "/vendor";
 
@@ -280,6 +281,7 @@ const SendButton = () => {
 };
 
 const PromptInput = () => {
+  const router = useRouter();
   return (
     <motion.div
       initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
@@ -295,6 +297,7 @@ const PromptInput = () => {
       }}
     >
       <div
+        onClick={() => router.push("/playground")}
         style={{
           width: "100%",
           height: 160,
@@ -307,6 +310,7 @@ const PromptInput = () => {
           position: "relative",
           display: "flex",
           flexDirection: "column",
+          cursor: "pointer",
         }}
       >
         <TypewriterPrompt />

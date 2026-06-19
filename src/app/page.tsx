@@ -18,7 +18,7 @@ export default function Page() {
             style={{ fontFamily: '"Outfit", sans-serif' }}
           >
             <a
-              href="#"
+              href="/playground"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -98,10 +98,10 @@ export default function Page() {
               Write, test, and deploy on-chain agents in your browser
             </p>
             <PromptInput />
+            <SectionTrustedBy />
           </div>
         </div>
       </div>
-      <SectionTrustedBy />
     </div>
   );
 }
