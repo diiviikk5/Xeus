@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { streamText, tool } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { Connection, PublicKey, LAMPORTS_PER_SOL, Keypair, Transaction, SystemProgram, sendAndConfirmTransaction } from "@solana/web3.js";
+import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
@@ -176,31 +177,50 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
     } as any);
 
     const mintNFTTool = tool({
-      description: "Mint a compressed NFT or token on Devnet.",
+      description: "Mint a new custom SPL Token on Devnet (creates mint, initializes account, and mints initial supply).",
       parameters: z.object({
-        name: z.string().describe("The name of the NFT collection."),
-        symbol: z.string().describe("The symbol of the NFT collection."),
+        name: z.string().describe("The name of the token."),
+        symbol: z.string().describe("The symbol of the token."),
+        decimals: z.number().default(9).describe("Number of decimals for the token."),
+        amount: z.number().default(100).describe("Amount of tokens to mint initially."),
       }),
-      execute: async ({ name, symbol }: { name: string; symbol: string }) => {
+      execute: async ({ name, symbol, decimals, amount }: { name: string; symbol: string; decimals: number; amount: number }) => {
         try {
-          // Record minting transaction on Devnet
-          const transaction = new Transaction().add(
-            SystemProgram.transfer({
-              fromPubkey: wallet.publicKey,
-              toPubkey: wallet.publicKey,
-              lamports: 0,
-            })
+          // 1. Create a new token mint
+          const mint = await createMint(
+            connection,
+            wallet, // payer
+            wallet.publicKey, // mintAuthority
+            wallet.publicKey, // freezeAuthority
+            decimals
           );
-          const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+
+          // 2. Get/create associated token account for the playground wallet
+          const ata = await getOrCreateAssociatedTokenAccount(
+            connection,
+            wallet, // payer
+            mint,
+            wallet.publicKey // owner
+          );
+
+          // 3. Mint tokens to the account
+          const signature = await mintTo(
+            connection,
+            wallet, // payer
+            mint,
+            ata.address,
+            wallet.publicKey, // mintAuthority
+            amount * Math.pow(10, decimals)
+          );
+
           return {
             status: "success",
             signature,
+            mintAddress: mint.toBase58(),
+            ataAddress: ata.address.toBase58(),
             name,
             symbol,
-            metadata: {
-              image: "https://arweave.net/xeus-placeholder-logo",
-              attributes: [{ trait_type: "IDE", value: "Xeus Playground" }],
-            }
+            amount,
           };
         } catch (err: any) {
           return { status: "error", error: err.message };
