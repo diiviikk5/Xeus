@@ -48,7 +48,12 @@ interface PlaygroundState {
   resetPlayground: () => void;
 }
 
-const DEFAULT_AGENT_CODE = `// agent.ts — Xeus Solana Agent Config
+export const AGENT_TEMPLATES = {
+  scout: {
+    id: "scout",
+    name: "Solana Scout",
+    description: "Balances, trades, and NFTs.",
+    code: `// agent.ts — Xeus Solana Agent Config
 import { SolanaAgentKit, createSolanaTools } from "@solana/agent-kit";
 
 export const config = {
@@ -70,12 +75,85 @@ Always summarize transactions clearly to the user.\`,
     allowedActions: ["balance", "trade", "transfer", "mint"]
   }
 };
-`;
+`
+  },
+  arbitrage: {
+    id: "arbitrage",
+    name: "Arbitrage Sniper",
+    description: "Scan pools & execute swaps.",
+    code: `// agent.ts — Arbitrage Sniper Config
+import { SolanaAgentKit } from "@solana/agent-kit";
+
+export const config = {
+  name: "Arbitrage Sniper",
+  model: "gpt-4o",
+  version: "2.1.0",
+  plugins: ["defi", "jupiter"],
+  systemPrompt: \`You are an automated Arbitrage Sniper agent.
+You scan Jupiter liquidity pools for price discrepancies and execute atomic swap routes.
+Always report the price difference, execution path, and net profit in USDC/SOL.\`,
+  constraints: {
+    maxTxSOL: 2.0,
+    minProfitUSDC: 0.1,
+    maxTxPerHour: 20,
+    allowedActions: ["trade", "swap"]
+  }
+};
+`
+  },
+  nftCreator: {
+    id: "nftCreator",
+    name: "NFT Creator",
+    description: "Mint cNFTs and collections.",
+    code: `// agent.ts — NFT Creator Config
+import { SolanaAgentKit } from "@solana/agent-kit";
+
+export const config = {
+  name: "NFT Creator",
+  model: "gpt-4o",
+  version: "1.2.0",
+  plugins: ["nft", "bubblegum"],
+  systemPrompt: \`You are an on-chain NFT Creator agent.
+You mint compressed NFTs (cNFTs) on Solana using Bubblegum program trees.
+You register collections and configure metadata.
+Always provide the Explorer links and collection details to the user.\`,
+  constraints: {
+    maxTxSOL: 0.1,
+    maxTxPerHour: 2,
+    allowedActions: ["mint"]
+  }
+};
+`
+  },
+  daoMonitor: {
+    id: "daoMonitor",
+    name: "DAO Voter",
+    description: "Govern & vote on-chain.",
+    code: `// agent.ts — DAO governance voter config
+import { SolanaAgentKit } from "@solana/agent-kit";
+
+export const config = {
+  name: "DAO Voter",
+  model: "gpt-4o-mini",
+  version: "1.0.0",
+  plugins: ["governance"],
+  systemPrompt: \`You are a DAO Governance Monitor agent.
+You track proposals, extract details, and vote automatically based on the user's criteria.
+Always summarize active proposals and why you voted a certain way.\`,
+  constraints: {
+    maxTxSOL: 0.05,
+    maxTxPerHour: 1,
+    allowedActions: ["balance", "vote"]
+  }
+};
+`
+  }
+};
 
 const DEFAULT_FILES: Record<string, PlaygroundFile> = {
   "agent.ts": {
     name: "agent.ts",
-    content: DEFAULT_AGENT_CODE,
+    content: AGENT_TEMPLATES.scout.code,
     language: "typescript",
   },
   "package.json": {
@@ -90,6 +168,26 @@ const DEFAULT_FILES: Record<string, PlaygroundFile> = {
     language: "json",
   },
 };
+
+interface PlaygroundState {
+  files: Record<string, PlaygroundFile>;
+  activeFileName: string;
+  isRunning: boolean;
+  wallet: PlaygroundWallet;
+  messages: ChatMessage[];
+  consoleLogs: string[];
+  
+  // Actions
+  setFileContent: (fileName: string, content: string) => void;
+  setActiveFile: (fileName: string) => void;
+  setIsRunning: (isRunning: boolean) => void;
+  setWallet: (wallet: Partial<PlaygroundWallet>) => void;
+  setMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
+  addConsoleLog: (log: string) => void;
+  clearConsoleLogs: () => void;
+  resetPlayground: () => void;
+  loadTemplate: (key: keyof typeof AGENT_TEMPLATES) => void;
+}
 
 export const usePlayground = create<PlaygroundState>((set) => ({
   files: DEFAULT_FILES,
@@ -164,4 +262,19 @@ export const usePlayground = create<PlaygroundState>((set) => ({
         "[xeus] Ready to connect to Solana Devnet.",
       ],
     }),
+
+  loadTemplate: (key) =>
+    set((state) => ({
+      files: {
+        ...state.files,
+        "agent.ts": {
+          ...state.files["agent.ts"],
+          content: AGENT_TEMPLATES[key].code,
+        },
+      },
+      consoleLogs: [
+        ...state.consoleLogs,
+        `[${new Date().toLocaleTimeString()}] [xeus] Loaded agent template: "${AGENT_TEMPLATES[key].name}"`
+      ]
+    })),
 }));
