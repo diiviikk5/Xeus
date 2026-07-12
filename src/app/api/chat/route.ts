@@ -84,7 +84,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
       parameters: z.object({
         address: z.string().describe("The base58 Solana public key address to query."),
       }),
-      execute: async ({ address }) => {
+      execute: async ({ address }: { address: string }) => {
         try {
           const balance = await connection.getBalance(new PublicKey(address));
           return { status: "success", balance: balance / LAMPORTS_PER_SOL };
@@ -92,14 +92,14 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
           return { status: "error", error: err.message };
         }
       }
-    });
+    } as any);
 
     const requestFaucetTool = tool({
       description: "Request an airdrop of 1.0 SOL Devnet token to fund your wallet.",
       parameters: z.object({
         address: z.string().describe("The base58 Solana public key address to fund."),
       }),
-      execute: async ({ address }) => {
+      execute: async ({ address }: { address: string }) => {
         try {
           const signature = await connection.requestAirdrop(new PublicKey(address), 1 * LAMPORTS_PER_SOL);
           const latestBlockhash = await connection.getLatestBlockhash();
@@ -109,7 +109,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
           return { status: "error", error: err.message };
         }
       }
-    });
+    } as any);
 
     const transferSOLTool = tool({
       description: "Transfer SOL from the playground wallet to another destination address.",
@@ -117,7 +117,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
         toAddress: z.string().describe("The destination base58 Solana address."),
         amountSOL: z.number().describe("The amount of SOL to transfer."),
       }),
-      execute: async ({ toAddress, amountSOL }) => {
+      execute: async ({ toAddress, amountSOL }: { toAddress: string; amountSOL: number }) => {
         try {
           const transaction = new Transaction().add(
             SystemProgram.transfer({
@@ -132,7 +132,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
           return { status: "error", error: err.message };
         }
       }
-    });
+    } as any);
 
     const swapTokensTool = tool({
       description: "Swap SOL to USDC or other tokens on Devnet (with simulated swaps backed by real-time Jupiter quotes).",
@@ -141,7 +141,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
         inputToken: z.string().default("SOL"),
         outputToken: z.string().default("USDC"),
       }),
-      execute: async ({ amountSOL, inputToken, outputToken }) => {
+      execute: async ({ amountSOL, inputToken, outputToken }: { amountSOL: number; inputToken: string; outputToken: string }) => {
         try {
           // Fetch real price quotes
           const quoteRes = await fetch(`https://price.jup.ag/v6/price?ids=${inputToken},${outputToken}`);
@@ -173,7 +173,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
           return { status: "error", error: err.message };
         }
       }
-    });
+    } as any);
 
     const mintNFTTool = tool({
       description: "Mint a compressed NFT or token on Devnet.",
@@ -181,7 +181,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
         name: z.string().describe("The name of the NFT collection."),
         symbol: z.string().describe("The symbol of the NFT collection."),
       }),
-      execute: async ({ name, symbol }) => {
+      execute: async ({ name, symbol }: { name: string; symbol: string }) => {
         try {
           // Record minting transaction on Devnet
           const transaction = new Transaction().add(
@@ -206,7 +206,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
           return { status: "error", error: err.message };
         }
       }
-    });
+    } as any);
 
     // 7. Invoke streamText with real tools
     const result = streamText({
@@ -222,7 +222,7 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
       },
     });
 
-    return result.toDataStreamResponse();
+    return (result as any).toDataStreamResponse();
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: message }, { status: 500 });

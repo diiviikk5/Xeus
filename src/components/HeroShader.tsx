@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from "react";
 declare global {
   interface Window {
     _heroProjectData?: unknown;
-    CoreRenderer?: { init: () => Promise<void> };
+    CoreRenderer?: {
+      init: () => Promise<void>;
+      destroy?: () => void;
+    };
   }
 }
 

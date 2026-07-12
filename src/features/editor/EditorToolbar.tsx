@@ -5,7 +5,7 @@ import { Play, Square, Coins, Rocket, ShieldAlert, Sparkles, Loader2 } from "luc
 import { useState } from "react";
 
 export default function EditorToolbar() {
-  const { isRunning, setIsRunning, wallet, setWallet, addConsoleLog } = usePlayground();
+  const { isRunning, setIsRunning, wallet, setWallet, addConsoleLog, files } = usePlayground();
   const [isFunding, setIsFunding] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
 
@@ -50,18 +50,37 @@ export default function EditorToolbar() {
     }
   };
 
-  const handleDeployAgent = () => {
+  const handleDeployAgent = async () => {
     if (isDeploying) return;
     setIsDeploying(true);
     addConsoleLog("Packaging agent bundle...");
-    setTimeout(() => {
-      addConsoleLog("Uploading to Vercel Serverless Edge container...");
-      setTimeout(() => {
-        addConsoleLog("Agent successfully deployed at: https://xeus.sh/agent/scout-99");
-        setIsDeploying(false);
-        alert("Deployment Complete!\n\nYour agent is live at: https://xeus.sh/agent/scout-99");
-      }, 1000);
-    }, 800);
+    
+    try {
+      const codeContent = files["agent.ts"]?.content || "";
+      const nameMatch = codeContent.match(/name:\s*"([^"]+)"/) || 
+                        codeContent.match(/name:\s*'([^']+)'/);
+      const agentName = nameMatch ? nameMatch[1] : "Solana Scout";
+
+      addConsoleLog(`Deploying agent "${agentName}" to edge containers...`);
+
+      const res = await fetch("/api/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: codeContent,
+          name: agentName,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      addConsoleLog(`Agent live at: http://localhost:3000${data.url}`);
+      setIsDeploying(false);
+      alert(`Deployment Complete!\n\nYour agent is live at:\nhttp://localhost:3000${data.url}`);
+    } catch (err: any) {
+      addConsoleLog(`[ERROR] Deployment failed: ${err.message}`);
+      setIsDeploying(false);
+    }
   };
 
   return (
