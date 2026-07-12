@@ -69,6 +69,13 @@ export default function HeroShader({ className = "" }: { className?: string }) {
     return () => {
       cancelled = true;
       if (blobUrl) URL.revokeObjectURL(blobUrl);
+      if (window.CoreRenderer && window.CoreRenderer.destroy) {
+        try {
+          window.CoreRenderer.destroy();
+        } catch (err) {
+          console.error("[HeroShader] destroy failed", err);
+        }
+      }
     };
   }, []);
 

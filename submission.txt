@@ -1,0 +1,1 @@
+Superteam team, we are applying with Xeus: a browser-native IDE and testing playground for Solana AI agents, with zero-setup Monaco editor workspaces, automated Devnet wallets/airdrops, and live chat panel testing powered by Vercel AI SDK v6; our funding ask is focused on upscaling our agentic engineering capabilities (standard 200 USDG ask).

@@ -9,31 +9,45 @@ export default function EditorToolbar() {
   const [isFunding, setIsFunding] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
 
-  const handleRunToggle = () => {
+  const handleRunToggle = async () => {
     if (isRunning) {
       setIsRunning(false);
       addConsoleLog("Agent sandbox terminated.");
     } else {
       setIsRunning(true);
       addConsoleLog("Compiling agent.ts...");
-      setTimeout(() => {
-        addConsoleLog("Initializing SolanaAgentKit runtime on Devnet...");
-        setWallet({ publicKey: "9xK8...q9wP", balance: 2.0, loading: false });
-        addConsoleLog("Devnet wallet active: 9xK8...q9wP (Loaded 2.0 SOL)");
+      try {
+        const res = await fetch("/api/wallet");
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        
+        setWallet({ publicKey: data.publicKey, balance: data.balance, loading: false });
+        addConsoleLog(`Initializing SolanaAgentKit runtime on Devnet...`);
+        addConsoleLog(`Devnet wallet active: ${data.publicKey} (${data.balance.toFixed(2)} SOL)`);
         addConsoleLog("Agent successfully loaded.");
-      }, 500);
+      } catch (err: any) {
+        addConsoleLog(`[ERROR] Failed to initialize Devnet wallet: ${err.message}`);
+        setIsRunning(false);
+      }
     }
   };
 
-  const handleRequestFaucet = () => {
+  const handleRequestFaucet = async () => {
     if (!isRunning || isFunding) return;
     setIsFunding(true);
     addConsoleLog("Requesting 1.0 SOL from Solana Devnet faucet...");
-    setTimeout(() => {
-      setWallet({ balance: wallet.balance + 1.0 });
-      addConsoleLog(`Airdrop successful! Wallet balance updated: ${wallet.balance + 1.0} SOL.`);
+    try {
+      const res = await fetch("/api/wallet", { method: "POST" });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      setWallet({ balance: data.balance });
+      addConsoleLog(`Airdrop successful! Wallet balance updated: ${data.balance.toFixed(2)} SOL.`);
+    } catch (err: any) {
+      addConsoleLog(`[ERROR] Faucet request failed: ${err.message}`);
+    } finally {
       setIsFunding(false);
-    }, 1200);
+    }
   };
 
   const handleDeployAgent = () => {

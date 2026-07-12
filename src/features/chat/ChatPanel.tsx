@@ -26,6 +26,7 @@ export default function ChatPanel() {
       api: "/api/chat",
       body: {
         code: files["agent.ts"]?.content || "",
+        env: files[".env"]?.content || "",
       },
     }),
     onFinish: (message: any) => {
