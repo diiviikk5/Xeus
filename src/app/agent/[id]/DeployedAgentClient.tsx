@@ -30,6 +30,9 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const [userApiKey, setUserApiKey] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("openai_api_key") || "" : ""
+  );
 
   // Add a console log helper
   const addLog = (msg: string) => {
@@ -61,7 +64,7 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
       api: "/api/chat",
       body: {
         code: agent.code,
-        env: "", // Env can be empty or resolved on server
+        env: `OPENAI_API_KEY=${userApiKey.trim()}`,
       },
     }),
     onFinish: (message: any) => {
@@ -126,6 +129,22 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
           <div className="hidden md:flex flex-col items-end">
             <span className="text-[9px] text-neutral-500">Agent Wallet Balance</span>
             <span className="text-xs text-neutral-300 font-semibold">{walletInfo.balance.toFixed(2)} SOL</span>
+          </div>
+          <div className="flex items-center gap-2 border-r pr-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+            <span className="text-[9px] text-neutral-500 font-mono">OpenAI Key</span>
+            <input
+              type="password"
+              placeholder="sk-..."
+              value={userApiKey}
+              onChange={(e) => {
+                setUserApiKey(e.target.value);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem("openai_api_key", e.target.value);
+                }
+              }}
+              className="w-24 bg-neutral-900 border rounded px-2 py-1 text-[10px] text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50 animate-pulse hover:animate-none focus:animate-none"
+              style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+            />
           </div>
           <button
             onClick={() => setIsShareOpen(true)}
