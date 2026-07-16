@@ -26,7 +26,7 @@ export default function ChatPanel() {
       api: "/api/chat",
       body: {
         code: files["agent.ts"]?.content || "",
-        env: files[".env"]?.content || "",
+        env: (files[".env"]?.content || "") + (typeof window !== "undefined" ? `\nOPENAI_API_KEY=${(localStorage.getItem("openai_api_key") || "").trim()}` : ""),
       },
     }),
     onFinish: (message: any) => {

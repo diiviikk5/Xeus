@@ -1,7 +1,7 @@
 "use client";
 
 import { usePlayground } from "@/hooks/usePlayground";
-import { Play, Square, Coins, Rocket, ShieldAlert, Sparkles, Loader2, X } from "lucide-react";
+import { Play, Square, Coins, Rocket, ShieldAlert, Sparkles, Loader2, X, Settings } from "lucide-react";
 import { useState } from "react";
 
 export default function EditorToolbar() {
@@ -11,6 +11,19 @@ export default function EditorToolbar() {
   const [isScaffoldOpen, setIsScaffoldOpen] = useState(false);
   const [scaffoldPrompt, setScaffoldPrompt] = useState("");
   const [isScaffolding, setIsScaffolding] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("openai_api_key") || "" : ""
+  );
+
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("openai_api_key", apiKeyInput);
+      addConsoleLog("OpenAI API Key updated in sandbox storage.");
+    }
+    setIsSettingsOpen(false);
+  };
 
   const handleRunToggle = async () => {
     if (isRunning) {
@@ -98,7 +111,7 @@ export default function EditorToolbar() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: scaffoldPrompt,
-          env: files[".env"]?.content || "",
+          env: (files[".env"]?.content || "") + (typeof window !== "undefined" ? `\nOPENAI_API_KEY=${(localStorage.getItem("openai_api_key") || "").trim()}` : ""),
         }),
       });
       const data = await res.json();
@@ -139,6 +152,19 @@ export default function EditorToolbar() {
           >
             <Sparkles size={11} className="text-orange-500" />
             <span>AI Scaffold</span>
+          </button>
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-900 border text-[11px] font-semibold text-neutral-400 hover:text-white transition-all duration-150 ml-2 hover:border-orange-500/30"
+            style={{
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              fontFamily: '"Orbitron", sans-serif',
+            }}
+          >
+            <Settings size={11} className="text-orange-500" />
+            <span>Settings</span>
           </button>
         </div>
 
@@ -286,6 +312,68 @@ export default function EditorToolbar() {
                       <span>Generate Agent</span>
                     </>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-md bg-black border rounded-xl overflow-hidden shadow-2xl flex flex-col"
+            style={{ borderColor: "rgba(255, 55, 0, 0.15)" }}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b flex items-center justify-between bg-neutral-950" style={{ borderColor: "rgba(255, 55, 0, 0.08)" }}>
+              <div className="flex items-center gap-2">
+                <Settings size={16} className="text-orange-500" />
+                <h3 className="text-sm font-semibold tracking-wider uppercase text-neutral-200" style={{ fontFamily: '"Orbitron", sans-serif' }}>
+                  Workspace Settings
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="text-neutral-500 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveSettings} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
+                  OpenAI API Key (sk-...)
+                </label>
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="Enter your OpenAI API key"
+                  className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
+                  style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                />
+                <p className="text-[9px] text-neutral-500 font-mono leading-relaxed">
+                  Your key is stored locally in your browser and used only to run your agent in the sandbox chat. It is never saved on any database.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="px-4 py-2 border rounded-lg text-xs font-semibold text-neutral-400 hover:text-white bg-transparent border-neutral-800 transition-colors"
+                  style={{ fontFamily: '"Orbitron", sans-serif' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-black bg-orange-500 hover:bg-orange-600 transition-colors"
+                  style={{ fontFamily: '"Orbitron", sans-serif' }}
+                >
+                  Save Settings
                 </button>
               </div>
             </form>

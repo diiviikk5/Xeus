@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePlayground } from "@/hooks/usePlayground";
 import FileExplorer from "@/features/editor/FileExplorer";
 import EditorToolbar from "@/features/editor/EditorToolbar";
 import CodeEditor from "@/features/editor/CodeEditor";
@@ -9,6 +11,18 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function PlaygroundPage() {
+  const { loadTemplate } = usePlayground();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const template = params.get("template");
+      if (template === "scout" || template === "arbitrage" || template === "nftCreator" || template === "daoMonitor") {
+        loadTemplate(template as any);
+      }
+    }
+  }, [loadTemplate]);
+
   return (
     <div className="w-full h-screen bg-black text-white flex flex-col overflow-hidden select-none selection:bg-orange-500/20">
       {/* Playground Header */}

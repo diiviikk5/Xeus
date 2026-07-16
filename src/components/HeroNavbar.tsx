@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type NavItem = { label: string; description?: string; external?: boolean };
 type NavColumn = { heading: string; items: NavItem[]; groups?: NavItem[][] };
@@ -134,6 +135,7 @@ const ArrowButton = ({ children }: { children: React.ReactNode }) => (
 );
 
 const HeroNavbar = () => {
+  const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const currentDropdownLink = navLinks.find((l) => l.label === activeDropdown) as
@@ -279,6 +281,17 @@ const HeroNavbar = () => {
                   border: "none",
                   color: highlighted ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.65)",
                 }}
+                onClick={() => {
+                  if (link.label === "Docs") {
+                    router.push("/docs");
+                  } else if (link.label === "Templates") {
+                    router.push("/templates");
+                  } else if (link.label === "Ecosystem") {
+                    router.push("/ecosystem");
+                  } else if (link.label === "GitHub") {
+                    window.open("https://github.com/diiviikk5/Xeus", "_blank");
+                  }
+                }}
                 onMouseEnter={(e) => {
                   if (hasDropdown) {
                     setActiveDropdown(link.label);
@@ -349,7 +362,22 @@ const HeroNavbar = () => {
                       {col.groups.map((group, gi) => (
                         <div key={gi} style={{ display: "flex", flexDirection: "column" }}>
                           {group.map((it) => (
-                            <button key={it.label} className="about-item" style={{ width: "100%" }}>
+                            <button
+                              key={it.label}
+                              className="about-item"
+                              style={{ width: "100%" }}
+                              onClick={() => {
+                                setAboutOpen(false);
+                                setActiveDropdown(null);
+                                if (it.label === "Agent Kit Docs" || it.label === "Guides" || it.label === "Examples") {
+                                  router.push("/docs");
+                                } else if (it.label === "Templates") {
+                                  router.push("/templates");
+                                } else if (it.label === "GitHub") {
+                                  window.open("https://github.com/diiviikk5/Xeus", "_blank");
+                                }
+                              }}
+                            >
                               <span>{it.label}</span>
                               {it.description && <span className="about-item-desc">{it.description}</span>}
                             </button>
@@ -360,7 +388,18 @@ const HeroNavbar = () => {
                   ) : (
                     <div style={{ columnCount: 2, columnGap: 48 }}>
                       {col.items.map((it) => (
-                        <button key={it.label} className="about-item" style={{ width: "100%" }}>
+                        <button
+                          key={it.label}
+                          className="about-item"
+                          style={{ width: "100%" }}
+                          onClick={() => {
+                            setAboutOpen(false);
+                            setActiveDropdown(null);
+                            if (it.label === "Solana Developers" || it.label === "AI Engineers" || it.label === "Product Leaders" || it.label === "Hackathon Teams" || it.label === "Ecosystem Protocols" || it.label === "Security Researchers") {
+                              router.push("/playground");
+                            }
+                          }}
+                        >
                           <span>{it.label}</span>
                           {it.description && <span className="about-item-desc">{it.description}</span>}
                         </button>
@@ -375,6 +414,11 @@ const HeroNavbar = () => {
                   <button
                     className="about-item"
                     style={{ padding: 0, gap: 14, alignItems: "stretch" }}
+                    onClick={() => {
+                      setAboutOpen(false);
+                      setActiveDropdown(null);
+                      router.push("/docs");
+                    }}
                   >
                     <div
                       style={{
@@ -422,7 +466,17 @@ const HeroNavbar = () => {
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <div className="about-heading">{currentDropdownLink.extra.heading}</div>
                   {currentDropdownLink.extra.items.map((it) => (
-                    <button key={it.label} className="about-item">
+                    <button
+                      key={it.label}
+                      className="about-item"
+                      onClick={() => {
+                        setAboutOpen(false);
+                        setActiveDropdown(null);
+                        if (it.label === "Monaco IDE" || it.label === "Devnet Wallet") {
+                          router.push("/playground");
+                        }
+                      }}
+                    >
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                         {it.label}
                         {it.external && <span style={{ transform: "translateY(-1px)" }}>↗</span>}
