@@ -12,15 +12,23 @@ export default function EditorToolbar() {
   const [scaffoldPrompt, setScaffoldPrompt] = useState("");
   const [isScaffolding, setIsScaffolding] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [providerInput, setProviderInput] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("ai_provider") || "openai" : "openai"
+  );
   const [apiKeyInput, setApiKeyInput] = useState(
-    typeof window !== "undefined" ? localStorage.getItem("openai_api_key") || "" : ""
+    typeof window !== "undefined" ? localStorage.getItem("ai_api_key") || localStorage.getItem("openai_api_key") || "" : ""
+  );
+  const [modelInput, setModelInput] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("ai_model") || "gpt-4o" : "gpt-4o"
   );
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     if (typeof window !== "undefined") {
-      localStorage.setItem("openai_api_key", apiKeyInput);
-      addConsoleLog("OpenAI API Key updated in sandbox storage.");
+      localStorage.setItem("ai_provider", providerInput);
+      localStorage.setItem("ai_api_key", apiKeyInput);
+      localStorage.setItem("ai_model", modelInput);
+      addConsoleLog(`Workspace Settings saved: ${providerInput} (${modelInput}) configuration active.`);
     }
     setIsSettingsOpen(false);
   };
@@ -343,20 +351,58 @@ export default function EditorToolbar() {
 
             {/* Form */}
             <form onSubmit={handleSaveSettings} className="p-6 space-y-4">
+              {/* Provider Selection */}
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
-                  OpenAI API Key (sk-...)
+                  AI Provider
+                </label>
+                <select
+                  value={providerInput}
+                  onChange={(e) => {
+                    setProviderInput(e.target.value);
+                    if (e.target.value === "openai") setModelInput("gpt-4o");
+                    else if (e.target.value === "anthropic") setModelInput("claude-3-5-sonnet-20241022");
+                    else if (e.target.value === "google") setModelInput("gemini-2.5-flash");
+                  }}
+                  className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
+                  style={{ borderColor: "rgba(255, 255, 255, 0.08)", background: "#0a0a0a" }}
+                >
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic Claude</option>
+                  <option value="google">Google Gemini</option>
+                </select>
+              </div>
+
+              {/* API Key */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
+                  API Key ({providerInput === "openai" ? "sk-..." : providerInput === "anthropic" ? "sk-ant-..." : "AIzaSy..."})
                 </label>
                 <input
                   type="password"
                   value={apiKeyInput}
                   onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="Enter your OpenAI API key"
+                  placeholder={`Enter your ${providerInput} API key`}
+                  className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
+                  style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                />
+              </div>
+
+              {/* Model Select */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
+                  Model Name
+                </label>
+                <input
+                  type="text"
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  placeholder="e.g. gpt-4o"
                   className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
                   style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
                 />
                 <p className="text-[9px] text-neutral-500 font-mono leading-relaxed">
-                  Your key is stored locally in your browser and used only to run your agent in the sandbox chat. It is never saved on any database.
+                  Your API key and preferences are stored locally in your browser. They are never sent to our servers except to run requests against your chosen AI model.
                 </p>
               </div>
 

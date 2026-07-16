@@ -65,28 +65,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!apiKey) {
-      throw new Error("No API Key detected. Please configure your key in Workspace Settings (Settings button) or define it in your .env file.");
-    }
+    let modelInstance: any = null;
 
-    if (!modelName) {
-      if (provider === "openai") modelName = "gpt-4o";
-      else if (provider === "anthropic") modelName = "claude-3-5-sonnet-20241022";
-      else if (provider === "google") modelName = "gemini-2.5-flash";
-    }
+    if (apiKey) {
+      if (!modelName) {
+        if (provider === "openai") modelName = "gpt-4o";
+        else if (provider === "anthropic") modelName = "claude-3-5-sonnet-20241022";
+        else if (provider === "google") modelName = "gemini-2.5-flash";
+      }
 
-    let modelInstance: any;
-    if (provider === "openai") {
-      const client = createOpenAI({ apiKey });
-      modelInstance = client(modelName);
-    } else if (provider === "anthropic") {
-      const client = createAnthropic({ apiKey });
-      modelInstance = client(modelName);
-    } else if (provider === "google") {
-      const client = createGoogleGenerativeAI({ apiKey });
-      modelInstance = client(modelName);
-    } else {
-      throw new Error(`Unsupported AI provider: ${provider}`);
+      if (provider === "openai") {
+        const client = createOpenAI({ apiKey });
+        modelInstance = client(modelName);
+      } else if (provider === "anthropic") {
+        const client = createAnthropic({ apiKey });
+        modelInstance = client(modelName);
+      } else if (provider === "google") {
+        const client = createGoogleGenerativeAI({ apiKey });
+        modelInstance = client(modelName);
+      } else {
+        throw new Error(`Unsupported AI provider: ${provider}`);
+      }
     }
     
     // 2. Parse system prompt from agent.ts code
@@ -95,8 +94,8 @@ export async function POST(req: NextRequest) {
                         code.match(/systemPrompt:\s*'([^']+)'/);
     const systemPrompt = promptMatch ? promptMatch[1] : "You are a helpful Solana agent.";
     
-    // 3. Fallback to descriptive mock if OpenAI key is missing
-    if (!openaiApiKey) {
+    // 3. Fallback to descriptive mock if AI key is missing
+    if (!apiKey) {
       const connection = new Connection(DEVNET_RPC, "confirmed");
       const wallet = getPlaygroundWallet();
       let balance = 0;

@@ -55,6 +55,13 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
     loadWallet();
   }, []);
 
+  const getApiKeyProvider = (key: string) => {
+    const k = key.trim();
+    if (k.startsWith("sk-ant-")) return "anthropic";
+    if (k.startsWith("AIzaSy")) return "google";
+    return "openai";
+  };
+
   const {
     messages,
     status,
@@ -64,11 +71,12 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
       api: "/api/chat",
       body: {
         code: agent.code,
-        env: `OPENAI_API_KEY=${userApiKey.trim()}`,
+        env: `AI_PROVIDER=${getApiKeyProvider(userApiKey)}\nAI_API_KEY=${userApiKey.trim()}`,
       },
     }),
     onFinish: (message: any) => {
-      addLog(`Agent execution completed. Response: "${message.content.slice(0, 30)}..."`);
+      const content = message?.content || "";
+      addLog(`Agent execution completed. Response: "${content.slice(0, 30)}..."`);
     },
     onError: (err: any) => {
       addLog(`[ERROR] Agent execution failed: ${err.message}`);

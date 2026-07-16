@@ -30,7 +30,8 @@ export default function ChatPanel() {
       },
     }),
     onFinish: (message: any) => {
-      addConsoleLog(`Agent execution completed. Final response: "${message.content.slice(0, 30)}..."`);
+      const content = message?.content || "";
+      addConsoleLog(`Agent execution completed. Final response: "${content.slice(0, 30)}..."`);
     },
     onError: (err: any) => {
       addConsoleLog(`[ERROR] Agent execution failed: ${err.message}`);
