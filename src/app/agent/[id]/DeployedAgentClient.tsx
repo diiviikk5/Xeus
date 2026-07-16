@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import Editor from "@monaco-editor/react";
-import { Send, ArrowLeft, Terminal, ShieldCheck, Loader2, Play, ExternalLink, Code2, Sparkles } from "lucide-react";
+import { Send, ArrowLeft, Terminal, ShieldCheck, Loader2, Play, ExternalLink, Code2, Sparkles, Share2, Copy, Check, X } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -27,6 +27,9 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
   ]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
 
   // Add a console log helper
   const addLog = (msg: string) => {
@@ -124,6 +127,17 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
             <span className="text-[9px] text-neutral-500">Agent Wallet Balance</span>
             <span className="text-xs text-neutral-300 font-semibold">{walletInfo.balance.toFixed(2)} SOL</span>
           </div>
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-neutral-300 bg-neutral-900 border hover:bg-neutral-800 transition-all duration-150"
+            style={{
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              fontFamily: '"Orbitron", sans-serif',
+            }}
+          >
+            <Share2 size={11} className="text-orange-500" />
+            <span>Share & Embed</span>
+          </button>
           <Link
             href="/playground"
             className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-black bg-orange-500 hover:bg-orange-600 transition-all duration-200"
@@ -367,6 +381,94 @@ export default function DeployedAgentClient({ agent }: DeployedAgentClientProps)
           </div>
         </div>
       </div>
+
+      {/* Share & Embed Modal */}
+      {isShareOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-lg bg-black border rounded-xl overflow-hidden shadow-2xl flex flex-col"
+            style={{ borderColor: "rgba(255, 55, 0, 0.15)" }}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b flex items-center justify-between bg-neutral-950" style={{ borderColor: "rgba(255, 55, 0, 0.08)" }}>
+              <div className="flex items-center gap-2">
+                <Share2 size={16} className="text-orange-500 animate-pulse" />
+                <h3 className="text-sm font-semibold tracking-wider uppercase text-neutral-200" style={{ fontFamily: '"Orbitron", sans-serif' }}>
+                  Share & Embed Agent
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsShareOpen(false)}
+                className="text-neutral-500 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5">
+              {/* Shareable Link */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
+                  Public Share Link
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={typeof window !== "undefined" ? `${window.location.origin}/agent/${agent.id}` : `/agent/${agent.id}`}
+                    className="flex-1 bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none"
+                    style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                  />
+                  <button
+                    onClick={() => {
+                      const link = typeof window !== "undefined" ? `${window.location.origin}/agent/${agent.id}` : `/agent/${agent.id}`;
+                      navigator.clipboard.writeText(link);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }}
+                    className="px-3 rounded-lg border text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-950 hover:bg-neutral-900 transition-colors flex items-center gap-1"
+                    style={{ borderColor: "rgba(255, 255, 255, 0.08)", fontFamily: '"Orbitron", sans-serif' }}
+                  >
+                    {copiedLink ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                    <span>{copiedLink ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Iframe Embed Snippet */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider">
+                  Iframe Embed Code
+                </label>
+                <div className="flex flex-col gap-2">
+                  <textarea
+                    readOnly
+                    rows={3}
+                    value={typeof window !== "undefined" ? `<iframe src="${window.location.origin}/agent/${agent.id}" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>` : `<iframe src="/agent/${agent.id}" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>`}
+                    className="w-full bg-neutral-900 border rounded-lg p-3 text-xs text-neutral-400 font-mono focus:outline-none resize-none leading-relaxed"
+                    style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                  />
+                  <button
+                    onClick={() => {
+                      const snippet = typeof window !== "undefined" 
+                        ? `<iframe src="${window.location.origin}/agent/${agent.id}" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>` 
+                        : `<iframe src="/agent/${agent.id}" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>`;
+                      navigator.clipboard.writeText(snippet);
+                      setCopiedEmbed(true);
+                      setTimeout(() => setCopiedEmbed(false), 2000);
+                    }}
+                    className="w-full py-2 rounded-lg border text-xs font-semibold text-black bg-orange-500 hover:bg-orange-600 transition-colors flex items-center justify-center gap-1.5"
+                    style={{ fontFamily: '"Orbitron", sans-serif' }}
+                  >
+                    {copiedEmbed ? <Check size={12} /> : <Copy size={12} />}
+                    <span>{copiedEmbed ? "Copied Snippet!" : "Copy Embed Code"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
