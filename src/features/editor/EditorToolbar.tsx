@@ -317,6 +317,7 @@ export default function EditorToolbar() {
             </form>
           </div>
         </div>
+      )}
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-150">

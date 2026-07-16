@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,24 +12,77 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    // Resolve OpenAI API Key (check server environment, then search user's .env file)
-    let openaiApiKey = process.env.OPENAI_API_KEY;
+    // Resolve Provider and API Key
+    let provider = "openai";
+    let apiKey = "";
+    let modelName = "";
+
     if (env) {
-      const match = env.match(/OPENAI_API_KEY\s*=\s*([^\s#]+)/);
-      if (match) {
-        openaiApiKey = match[1];
+      const providerMatch = env.match(/AI_PROVIDER\s*=\s*([^\s#]+)/);
+      const keyMatch = env.match(/AI_API_KEY\s*=\s*([^\s#]+)/);
+      const modelMatch = env.match(/AI_MODEL\s*=\s*([^\s#]+)/);
+
+      if (providerMatch) provider = providerMatch[1];
+      if (keyMatch) apiKey = keyMatch[1];
+      if (modelMatch) modelName = modelMatch[1];
+
+      // Auto-fallback mapping for standard API keys in env editor
+      if (!apiKey) {
+        const openaiMatch = env.match(/OPENAI_API_KEY\s*=\s*([^\s#]+)/);
+        const anthropicMatch = env.match(/ANTHROPIC_API_KEY\s*=\s*([^\s#]+)/);
+        const geminiMatch = env.match(/GEMINI_API_KEY\s*=\s*([^\s#]+)/);
+
+        if (openaiMatch) {
+          provider = "openai";
+          apiKey = openaiMatch[1];
+        } else if (anthropicMatch) {
+          provider = "anthropic";
+          apiKey = anthropicMatch[1];
+        } else if (geminiMatch) {
+          provider = "google";
+          apiKey = geminiMatch[1];
+        }
       }
     }
 
-    if (!openaiApiKey) {
+    if (!apiKey) {
+      if (process.env.OPENAI_API_KEY) {
+        provider = "openai";
+        apiKey = process.env.OPENAI_API_KEY;
+      } else if (process.env.ANTHROPIC_API_KEY) {
+        provider = "anthropic";
+        apiKey = process.env.ANTHROPIC_API_KEY;
+      } else if (process.env.GEMINI_API_KEY) {
+        provider = "google";
+        apiKey = process.env.GEMINI_API_KEY;
+      }
+    }
+
+    if (!apiKey) {
       return NextResponse.json({
-        error: "OpenAI API Key is missing. Please configure it in your environment or in the .env file in the playground.",
+        error: "No API Key detected. Please configure your key in Workspace Settings (Settings button) or define it in your .env file.",
       }, { status: 400 });
     }
 
-    const openai = createOpenAI({
-      apiKey: openaiApiKey,
-    });
+    if (!modelName) {
+      if (provider === "openai") modelName = "gpt-4o";
+      else if (provider === "anthropic") modelName = "claude-3-5-sonnet-20241022";
+      else if (provider === "google") modelName = "gemini-2.5-flash";
+    }
+
+    let modelInstance: any;
+    if (provider === "openai") {
+      const client = createOpenAI({ apiKey });
+      modelInstance = client(modelName);
+    } else if (provider === "anthropic") {
+      const client = createAnthropic({ apiKey });
+      modelInstance = client(modelName);
+    } else if (provider === "google") {
+      const client = createGoogleGenerativeAI({ apiKey });
+      modelInstance = client(modelName);
+    } else {
+      return NextResponse.json({ error: `Unsupported AI provider: ${provider}` }, { status: 400 });
+    }
 
     const systemInstruction = `You are an AI assistant built inside the Xeus Solana Agent IDE.
 Your task is to take a natural language description of a Solana AI agent and translate it into a valid, beautiful, and complete TypeScript configuration matching the Xeus agent.ts format.
@@ -56,7 +111,7 @@ export const config = {
 };`;
 
     const { text } = await generateText({
-      model: openai("gpt-4o"),
+      model: modelInstance,
       system: systemInstruction,
       prompt: `Generate a TypeScript agent config for: "${prompt}"`,
     });

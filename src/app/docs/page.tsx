@@ -272,17 +272,17 @@ const myEscrowTool = tool({
                   <h4 className="text-xs font-bold text-white font-mono uppercase">Iframe Embed Code Snippet:</h4>
                   <div className="relative">
                     <button
-                      onClick={() => handleCopy(\`<iframe src="https://xeus.sh/agent/your-agent-id" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>\`, "code-embed")}
+                      onClick={() => handleCopy('<iframe src="https://xeus.sh/agent/your-agent-id" style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;" allow="clipboard-write"></iframe>', "code-embed")}
                       className="absolute right-3 top-3 p-1.5 rounded-lg bg-black border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
                     >
                       {copiedText === "code-embed" ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
                     </button>
                     <pre className="bg-neutral-950 p-4 border border-neutral-900 rounded-xl overflow-x-auto text-[11px] font-mono text-neutral-300 leading-relaxed">
-{\`<iframe
+{`<iframe
   src="https://xeus.sh/agent/your-agent-id"
   style="width: 100%; height: 600px; border: 1px solid rgba(255, 55, 0, 0.12); border-radius: 12px; background: black;"
   allow="clipboard-write">
-</iframe>\`}
+</iframe>`}
                     </pre>
                   </div>
                 </div>
