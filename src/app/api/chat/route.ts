@@ -290,7 +290,6 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
       model: modelInstance,
       system: systemPrompt,
       messages,
-      maxSteps: 5,
       abortSignal: AbortSignal.timeout(15000),
       tools: {
         getBalance: getBalanceTool,
