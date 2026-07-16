@@ -136,11 +136,6 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
     const connection = new Connection(DEVNET_RPC, "confirmed");
     const wallet = getPlaygroundWallet();
     
-    // 5. Initialize OpenAI client
-    const openai = createOpenAI({
-      apiKey: openaiApiKey,
-    });
-    
     // 6. Define real on-chain tools
     const getBalanceTool = tool({
       description: "Get the current SOL balance of a Solana wallet on Devnet.",
