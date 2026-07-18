@@ -17,7 +17,7 @@ export default function PlaygroundPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const template = params.get("template");
-      if (template === "scout" || template === "arbitrage" || template === "nftCreator" || template === "daoMonitor") {
+      if (template === "scout" || template === "arbitrage" || template === "nftCreator" || template === "daoMonitor" || template === "tokenLaunch") {
         loadTemplate(template as any);
       }
     }

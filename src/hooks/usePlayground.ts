@@ -147,6 +147,30 @@ Always summarize active proposals and why you voted a certain way.\`,
   }
 };
 `
+  },
+  tokenLaunch: {
+    id: "tokenLaunch",
+    name: "Token Launcher",
+    description: "Create and launch SPL tokens.",
+    code: `// agent.ts — SPL Token Launch Agent
+import { SolanaAgentKit } from "@solana/agent-kit";
+
+export const config = {
+  name: "Token Launcher",
+  model: "gpt-4o",
+  version: "1.0.0",
+  plugins: ["token"],
+  systemPrompt: \`You are an SPL Token Launch agent.
+You deploy new SPL tokens on Solana Devnet.
+You configure decimals, initial supplies, metadata info, and mint tokens to associated accounts.
+Always report the mint address and signature of the transaction.\`,
+  constraints: {
+    maxTxSOL: 0.1,
+    maxTxPerHour: 2,
+    allowedActions: ["mint", "deploy"]
+  }
+};
+`
   }
 };
 

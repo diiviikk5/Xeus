@@ -68,6 +68,22 @@ export const config = {
   systemPrompt: "You are a DAO Governance Monitor...",
   constraints: { maxTxSOL: 0.05 }
 };`
+  },
+  {
+    id: "tokenLaunch",
+    name: "Token Launcher",
+    description: "Launch new SPL tokens on Solana Devnet. Configures total supply, token decimals, initializes associated token accounts, and mints initial tokens.",
+    plugins: ["token"],
+    model: "gpt-4o",
+    allowedActions: ["mint", "deploy"],
+    codeSnippet: `// agent.ts
+export const config = {
+  name: "Token Launcher",
+  model: "gpt-4o",
+  plugins: ["token"],
+  systemPrompt: "You are an SPL Token Launch agent...",
+  constraints: { maxTxSOL: 0.1 }
+};`
   }
 ];
 
