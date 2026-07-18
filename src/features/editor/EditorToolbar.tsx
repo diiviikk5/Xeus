@@ -3,6 +3,7 @@
 import { usePlayground } from "@/hooks/usePlayground";
 import { Play, Square, Coins, Rocket, ShieldAlert, Sparkles, Loader2, X, Settings } from "lucide-react";
 import { useState } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 export default function EditorToolbar() {
   const { isRunning, setIsRunning, wallet, setWallet, addConsoleLog, files, setFileContent } = usePlayground();
@@ -27,6 +28,39 @@ export default function EditorToolbar() {
   const [solanaRpcUrlInput, setSolanaRpcUrlInput] = useState(
     typeof window !== "undefined" ? localStorage.getItem("solana_rpc_url") || "https://api.devnet.solana.com" : "https://api.devnet.solana.com"
   );
+  const [phantomKey, setPhantomKey] = useState<string | null>(null);
+  const [isConnectingPhantom, setIsConnectingPhantom] = useState(false);
+
+  const handleConnectPhantom = async () => {
+    if (phantomKey) {
+      setPhantomKey(null);
+      addConsoleLog("Phantom wallet disconnected.");
+      return;
+    }
+    if (typeof window === "undefined") return;
+    const provider = (window as any).solana;
+    if (!provider || !provider.isPhantom) {
+      addConsoleLog("[WARNING] Phantom extension not detected. Opening download page...");
+      window.open("https://phantom.app/", "_blank");
+      return;
+    }
+    setIsConnectingPhantom(true);
+    addConsoleLog("Requesting Phantom Wallet connection...");
+    try {
+      const resp = await provider.connect();
+      const pubKey = resp.publicKey.toString();
+      setPhantomKey(pubKey);
+      addConsoleLog(`Phantom Wallet successfully connected: ${pubKey}`);
+
+      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+      const bal = await connection.getBalance(resp.publicKey);
+      addConsoleLog(`Phantom Account Balance: ${(bal / 1_000_000_000).toFixed(2)} SOL (Devnet)`);
+    } catch (err: any) {
+      addConsoleLog(`[ERROR] Phantom connection rejected: ${err.message}`);
+    } finally {
+      setIsConnectingPhantom(false);
+    }
+  };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +257,26 @@ export default function EditorToolbar() {
               </button>
             </div>
           )}
+
+          {/* Phantom Wallet Connector */}
+          <button
+            onClick={handleConnectPhantom}
+            disabled={isConnectingPhantom}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border cursor-pointer"
+            style={{
+              background: phantomKey ? "rgba(74, 222, 128, 0.05)" : "rgba(255, 255, 255, 0.02)",
+              borderColor: phantomKey ? "rgba(74, 222, 128, 0.25)" : "rgba(255, 255, 255, 0.06)",
+              color: phantomKey ? "#4ade80" : "#a3a3a3",
+              fontFamily: '"Orbitron", sans-serif',
+            }}
+          >
+            {isConnectingPhantom ? (
+              <Loader2 size={11} className="animate-spin text-orange-500" />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: phantomKey ? "#4ade80" : "#6b7280" }} />
+            )}
+            <span>{phantomKey ? `${phantomKey.slice(0, 4)}...${phantomKey.slice(-4)}` : "Connect Wallet"}</span>
+          </button>
 
           {/* Run/Stop Buttons */}
           <button
