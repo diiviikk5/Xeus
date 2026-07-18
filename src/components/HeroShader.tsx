@@ -18,9 +18,20 @@ async function loadScript(src: string) {
   const res = await fetch(src, { credentials: "omit" });
   if (!res.ok) throw new Error(`fetch ${src} -> ${res.status}`);
   const text = await res.text();
-  // Execute in global scope so it can assign to window.* like a normal <script>.
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  new Function(text).call(window);
+  
+  // Mask global define function to prevent AMD load hijacking by Monaco's loader
+  const oldDefine = (window as any).define;
+  try {
+    (window as any).define = undefined;
+    // Execute in global scope so it can assign to window.* like a normal <script>.
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    new Function(text).call(window);
+  } finally {
+    if (oldDefine) {
+      (window as any).define = oldDefine;
+    }
+  }
+  
   (window as unknown as Record<string, boolean>)[cacheKey] = true;
 }
 
