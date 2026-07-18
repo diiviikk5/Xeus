@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { Connection, LAMPORTS_PER_SOL, Keypair } from "@solana/web3.js";
 import fs from "fs";
 import path from "path";
+import bs58 from "bs58";
 
 // Helper to get or create playground wallet
-// On Vercel (read-only FS), falls back to generating from PLAYGROUND_WALLET_SECRET env var
-export function getPlaygroundWallet(): Keypair {
+// If custom base58 private key is passed, decode and use that.
+export function getPlaygroundWallet(customPrivateKey?: string): Keypair {
+  if (customPrivateKey) {
+    try {
+      const decoded = bs58.decode(customPrivateKey.trim());
+      return Keypair.fromSecretKey(decoded);
+    } catch (e: any) {
+      throw new Error(`Invalid custom Solana private key: ${e.message}`);
+    }
+  }
+
   // 1. Try env var first (works on Vercel)
   if (process.env.PLAYGROUND_WALLET_SECRET) {
     try {
@@ -34,12 +44,14 @@ export function getPlaygroundWallet(): Keypair {
   }
 }
 
-const DEVNET_RPC = "https://api.devnet.solana.com";
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const keypair = getPlaygroundWallet();
-    const connection = new Connection(DEVNET_RPC, "confirmed");
+    const { searchParams } = new URL(req.url);
+    const customKey = searchParams.get("privateKey") || undefined;
+    const customRpc = searchParams.get("rpcUrl") || "https://api.devnet.solana.com";
+
+    const keypair = getPlaygroundWallet(customKey);
+    const connection = new Connection(customRpc, "confirmed");
     const balance = await connection.getBalance(keypair.publicKey);
 
     return NextResponse.json({
@@ -52,10 +64,19 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
-    const keypair = getPlaygroundWallet();
-    const connection = new Connection(DEVNET_RPC, "confirmed");
+    let customKey: string | undefined;
+    let customRpc = "https://api.devnet.solana.com";
+
+    try {
+      const body = await req.json();
+      customKey = body.privateKey || undefined;
+      customRpc = body.rpcUrl || "https://api.devnet.solana.com";
+    } catch (e) {}
+
+    const keypair = getPlaygroundWallet(customKey);
+    const connection = new Connection(customRpc, "confirmed");
 
     const signature = await connection.requestAirdrop(
       keypair.publicKey,

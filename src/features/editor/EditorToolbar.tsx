@@ -21,6 +21,12 @@ export default function EditorToolbar() {
   const [modelInput, setModelInput] = useState(
     typeof window !== "undefined" ? localStorage.getItem("ai_model") || "gpt-4o" : "gpt-4o"
   );
+  const [solanaPrivateKeyInput, setSolanaPrivateKeyInput] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("solana_private_key") || "" : ""
+  );
+  const [solanaRpcUrlInput, setSolanaRpcUrlInput] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("solana_rpc_url") || "https://api.devnet.solana.com" : "https://api.devnet.solana.com"
+  );
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +34,9 @@ export default function EditorToolbar() {
       localStorage.setItem("ai_provider", providerInput);
       localStorage.setItem("ai_api_key", apiKeyInput);
       localStorage.setItem("ai_model", modelInput);
-      addConsoleLog(`Workspace Settings saved: ${providerInput} (${modelInput}) configuration active.`);
+      localStorage.setItem("solana_private_key", solanaPrivateKeyInput);
+      localStorage.setItem("solana_rpc_url", solanaRpcUrlInput);
+      addConsoleLog(`Workspace Settings saved: ${providerInput} (${modelInput}) & custom wallet configuration active.`);
     }
     setIsSettingsOpen(false);
   };
@@ -41,16 +49,22 @@ export default function EditorToolbar() {
       setIsRunning(true);
       addConsoleLog("Compiling agent.ts...");
       try {
-        const res = await fetch("/api/wallet");
+        const privateKey = localStorage.getItem("solana_private_key") || "";
+        const rpcUrl = localStorage.getItem("solana_rpc_url") || "https://api.devnet.solana.com";
+        const queryParams = new URLSearchParams();
+        if (privateKey) queryParams.set("privateKey", privateKey);
+        if (rpcUrl) queryParams.set("rpcUrl", rpcUrl);
+
+        const res = await fetch(`/api/wallet?${queryParams.toString()}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         
         setWallet({ publicKey: data.publicKey, balance: data.balance, loading: false });
-        addConsoleLog(`Initializing SolanaAgentKit runtime on Devnet...`);
-        addConsoleLog(`Devnet wallet active: ${data.publicKey} (${data.balance.toFixed(2)} SOL)`);
+        addConsoleLog(`Initializing SolanaAgentKit runtime on custom node: ${rpcUrl}...`);
+        addConsoleLog(`Wallet active: ${data.publicKey} (${data.balance.toFixed(2)} SOL)`);
         addConsoleLog("Agent successfully loaded.");
       } catch (err: any) {
-        addConsoleLog(`[ERROR] Failed to initialize Devnet wallet: ${err.message}`);
+        addConsoleLog(`[ERROR] Failed to initialize wallet: ${err.message}`);
         setIsRunning(false);
       }
     }
@@ -61,7 +75,13 @@ export default function EditorToolbar() {
     setIsFunding(true);
     addConsoleLog("Requesting 1.0 SOL from Solana Devnet faucet...");
     try {
-      const res = await fetch("/api/wallet", { method: "POST" });
+      const privateKey = localStorage.getItem("solana_private_key") || "";
+      const rpcUrl = localStorage.getItem("solana_rpc_url") || "https://api.devnet.solana.com";
+      const res = await fetch("/api/wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ privateKey, rpcUrl })
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       
@@ -404,6 +424,39 @@ export default function EditorToolbar() {
                 <p className="text-[9px] text-neutral-500 font-mono leading-relaxed">
                   Your API key and preferences are stored locally in your browser. They are never sent to our servers except to run requests against your chosen AI model.
                 </p>
+              </div>
+
+              {/* Solana Custom Wallet Configuration */}
+              <div className="border-t border-neutral-900 pt-3 space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-orange-500" />
+                    Solana Private Key (Base58)
+                  </label>
+                  <input
+                    type="password"
+                    value={solanaPrivateKeyInput}
+                    onChange={(e) => setSolanaPrivateKeyInput(e.target.value)}
+                    placeholder="Leaves empty to use default playground wallet"
+                    className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
+                    style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold text-neutral-400 font-mono tracking-wider flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-orange-500" />
+                    Solana RPC URL
+                  </label>
+                  <input
+                    type="text"
+                    value={solanaRpcUrlInput}
+                    onChange={(e) => setSolanaRpcUrlInput(e.target.value)}
+                    placeholder="https://api.devnet.solana.com"
+                    className="w-full bg-neutral-900 border rounded-lg px-3 py-2 text-xs text-neutral-300 font-mono focus:outline-none focus:border-orange-500/50"
+                    style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

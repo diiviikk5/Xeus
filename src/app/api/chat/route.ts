@@ -16,7 +16,7 @@ const DEVNET_RPC = "https://api.devnet.solana.com";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, code, env } = await req.json();
+    const { messages, code, env, privateKey, rpcUrl } = await req.json();
     const lastMessage = messages[messages.length - 1]?.content || "";
     
     // 1. Resolve Provider and API Key
@@ -133,11 +133,12 @@ Please add your OPENAI_API_KEY in the editor's \`.env\` file (or in your server 
     }
 
     // 4. Initialize SolanaAgentKit Core Runtime
-    const wallet = getPlaygroundWallet();
-    const keypairWallet = new KeypairWallet(wallet, DEVNET_RPC);
+    const resolvedRpcUrl = rpcUrl || DEVNET_RPC;
+    const wallet = getPlaygroundWallet(privateKey);
+    const keypairWallet = new KeypairWallet(wallet, resolvedRpcUrl);
     const agentInstance = new SolanaAgentKit(
       keypairWallet,
-      DEVNET_RPC,
+      resolvedRpcUrl,
       {
         OPENAI_API_KEY: provider === "openai" ? apiKey : undefined
       }

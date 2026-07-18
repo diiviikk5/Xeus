@@ -11,6 +11,15 @@ export default function ChatPanel() {
   const { isRunning, setIsRunning, files, addConsoleLog } = usePlayground();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
+  const [customPrivateKey, setCustomPrivateKey] = useState("");
+  const [customRpcUrl, setCustomRpcUrl] = useState("https://api.devnet.solana.com");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCustomPrivateKey(localStorage.getItem("solana_private_key") || "");
+      setCustomRpcUrl(localStorage.getItem("solana_rpc_url") || "https://api.devnet.solana.com");
+    }
+  }, [isRunning]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -27,6 +36,8 @@ export default function ChatPanel() {
       body: {
         code: files["agent.ts"]?.content || "",
         env: (files[".env"]?.content || "") + (typeof window !== "undefined" ? `\nOPENAI_API_KEY=${(localStorage.getItem("openai_api_key") || "").trim()}` : ""),
+        privateKey: customPrivateKey,
+        rpcUrl: customRpcUrl,
       },
     }),
     onFinish: (message: any) => {

@@ -17,6 +17,7 @@
     "@solana/spl-token": "^0.4.1",
     "@solana/web3.js": "^1.98.4",
     "ai": "^6.0.208",
+    "bs58": "^6.0.0",
     "framer-motion": "^12.40.0",
     "geist": "^1.7.2",
     "langsmith": "^0.8.3",
