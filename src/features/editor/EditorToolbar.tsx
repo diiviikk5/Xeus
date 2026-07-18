@@ -30,13 +30,10 @@ export default function EditorToolbar() {
   );
   const [phantomKey, setPhantomKey] = useState<string | null>(null);
   const [isConnectingPhantom, setIsConnectingPhantom] = useState(false);
+  const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
 
   const handleConnectPhantom = async () => {
-    if (phantomKey) {
-      setPhantomKey(null);
-      addConsoleLog("Phantom wallet disconnected.");
-      return;
-    }
+    setIsWalletMenuOpen(false);
     if (typeof window === "undefined") return;
     const provider = (window as any).solana;
     if (!provider || !provider.isPhantom) {
@@ -57,6 +54,51 @@ export default function EditorToolbar() {
       addConsoleLog(`Phantom Account Balance: ${(bal / 1_000_000_000).toFixed(2)} SOL (Devnet)`);
     } catch (err: any) {
       addConsoleLog(`[ERROR] Phantom connection rejected: ${err.message}`);
+    } finally {
+      setIsConnectingPhantom(false);
+    }
+  };
+
+  const handleConnectSolflare = async () => {
+    setIsWalletMenuOpen(false);
+    if (typeof window === "undefined") return;
+    const provider = (window as any).solflare;
+    if (!provider) {
+      addConsoleLog("[WARNING] Solflare extension not detected. Opening download page...");
+      window.open("https://solflare.com/", "_blank");
+      return;
+    }
+    setIsConnectingPhantom(true);
+    addConsoleLog("Connecting to Solflare Wallet extension...");
+    try {
+      await provider.connect();
+      const pubKey = provider.publicKey.toString();
+      setPhantomKey(pubKey);
+      addConsoleLog(`Solflare Wallet connected: ${pubKey}`);
+
+      const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+      const bal = await connection.getBalance(provider.publicKey);
+      addConsoleLog(`Connected wallet balance: ${(bal / 1_000_000_000).toFixed(2)} SOL (Devnet)`);
+    } catch (err: any) {
+      addConsoleLog(`[ERROR] Solflare connection rejected: ${err.message}`);
+    } finally {
+      setIsConnectingPhantom(false);
+    }
+  };
+
+  const handleConnectPlayground = async () => {
+    setIsWalletMenuOpen(false);
+    setIsConnectingPhantom(true);
+    addConsoleLog("Connecting to Playground Wallet...");
+    try {
+      const res = await fetch("/api/wallet");
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setPhantomKey(data.publicKey);
+      setWallet({ publicKey: data.publicKey, balance: data.balance, loading: false });
+      addConsoleLog(`Connected to Playground Wallet: ${data.publicKey} (${data.balance.toFixed(2)} SOL)`);
+    } catch (err: any) {
+      addConsoleLog(`[ERROR] Failed to load playground wallet: ${err.message}`);
     } finally {
       setIsConnectingPhantom(false);
     }
@@ -258,25 +300,69 @@ export default function EditorToolbar() {
             </div>
           )}
 
-          {/* Phantom Wallet Connector */}
-          <button
-            onClick={handleConnectPhantom}
-            disabled={isConnectingPhantom}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border cursor-pointer"
-            style={{
-              background: phantomKey ? "rgba(74, 222, 128, 0.05)" : "rgba(255, 255, 255, 0.02)",
-              borderColor: phantomKey ? "rgba(74, 222, 128, 0.25)" : "rgba(255, 255, 255, 0.06)",
-              color: phantomKey ? "#4ade80" : "#a3a3a3",
-              fontFamily: '"Orbitron", sans-serif',
-            }}
-          >
-            {isConnectingPhantom ? (
-              <Loader2 size={11} className="animate-spin text-orange-500" />
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: phantomKey ? "#4ade80" : "#6b7280" }} />
+          {/* Wallet Connection Selector Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (phantomKey) {
+                  setPhantomKey(null);
+                  addConsoleLog("Wallet disconnected.");
+                } else {
+                  setIsWalletMenuOpen(!isWalletMenuOpen);
+                }
+              }}
+              disabled={isConnectingPhantom}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border cursor-pointer hover:border-orange-500/35"
+              style={{
+                background: phantomKey ? "rgba(74, 222, 128, 0.05)" : "rgba(255, 255, 255, 0.02)",
+                borderColor: phantomKey ? "rgba(74, 222, 128, 0.25)" : "rgba(255, 255, 255, 0.06)",
+                color: phantomKey ? "#4ade80" : "#a3a3a3",
+                fontFamily: '"Orbitron", sans-serif',
+              }}
+            >
+              {isConnectingPhantom ? (
+                <Loader2 size={11} className="animate-spin text-orange-500" />
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: phantomKey ? "#4ade80" : "#6b7280" }} />
+              )}
+              <span>{phantomKey ? `${phantomKey.slice(0, 4)}...${phantomKey.slice(-4)}` : "Connect Wallet"}</span>
+            </button>
+
+            {isWalletMenuOpen && (
+              <div
+                className="absolute right-0 mt-2 w-48 bg-neutral-950 border rounded-lg p-2 shadow-xl z-50 flex flex-col gap-1.5 animate-in slide-in-from-top-1 duration-150"
+                style={{ borderColor: "rgba(255, 55, 0, 0.18)" }}
+              >
+                <div className="px-2 py-1 text-[9px] uppercase tracking-wider font-bold text-neutral-500 font-mono">
+                  Select Wallet
+                </div>
+                <button
+                  onClick={handleConnectPhantom}
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-neutral-300 hover:text-white rounded hover:bg-neutral-900 transition-colors flex items-center gap-2 cursor-pointer"
+                  style={{ fontFamily: '"Outfit", sans-serif' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Phantom Wallet
+                </button>
+                <button
+                  onClick={handleConnectSolflare}
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-neutral-300 hover:text-white rounded hover:bg-neutral-900 transition-colors flex items-center gap-2 cursor-pointer"
+                  style={{ fontFamily: '"Outfit", sans-serif' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  Solflare Wallet
+                </button>
+                <button
+                  onClick={handleConnectPlayground}
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-neutral-300 hover:text-white rounded hover:bg-neutral-900 transition-colors flex items-center gap-2 cursor-pointer"
+                  style={{ fontFamily: '"Outfit", sans-serif' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Playground Wallet
+                </button>
+              </div>
             )}
-            <span>{phantomKey ? `${phantomKey.slice(0, 4)}...${phantomKey.slice(-4)}` : "Connect Wallet"}</span>
-          </button>
+          </div>
 
           {/* Run/Stop Buttons */}
           <button
